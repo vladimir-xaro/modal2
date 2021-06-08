@@ -1,0 +1,16 @@
+@import "./index.scss";
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+.btn-modal {
+  &-list {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 999;
+  }
+}
