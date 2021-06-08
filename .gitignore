@@ -3,3 +3,6 @@
 
 /dev
 /node_modules
+
+/src/index.dev.ts
+/src/entry.ts
