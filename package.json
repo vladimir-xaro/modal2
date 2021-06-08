@@ -2,8 +2,8 @@
   "name": "@xaro/modal2",
   "version": "0.0.0",
   "description": "",
-  "main": "./dist/tabs.js",
-  "types": "./dist/tabs.d.ts",
+  "main": "./dist/modal.js",
+  "types": "./dist/modal.d.ts",
   "scripts": {
     "watch": "cross-env rollup -c -w --environment NODE_ENV:development",
     "build": "cross-env rollup -c --environment NODE_ENV:development",
@@ -13,21 +13,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vladimir-xaro/tabs.git"
+    "url": "git+https://github.com/vladimir-xaro/modal2.git"
   },
   "keywords": [
     "front-end",
-    "tabs",
-    "events",
-    "css-animations",
-    "typescript"
+    "modal"
   ],
   "author": "Vladimir Slavgorodskiy <vladimir.xaro@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/vladimir-xaro/tabs/issues"
+    "url": "https://github.com/vladimir-xaro/modal2/issues"
   },
-  "homepage": "https://github.com/vladimir-xaro/tabs#readme",
+  "homepage": "https://github.com/vladimir-xaro/modal2#readme",
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/preset-env": "^7.14.4",
