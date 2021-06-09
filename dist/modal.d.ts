@@ -1,16 +1,6 @@
 export type MutationType = 'animation' | 'transition';
 
-export interface ModalCtor {
-  instances:  Modal[];
-  queue:      Modal[];
-  isFirst:    boolean;
-
-  showById(id: string): void;
-  addsEscListener(): void;
-  new(config: ModalCtorCfg);
-}
-
-export class Modal {
+export default class Modal {
   config: ModalCfg;
 
   constructor(config: ModalCtorCfg);
@@ -19,6 +9,16 @@ export class Modal {
   hide();
   show();
   toggle();
+}
+
+export interface ModalCtor {
+  instances:  Modal[];
+  queue:      Modal[];
+  isFirst:    boolean;
+
+  showById(id: string): void;
+  addsEscListener(): void;
+  new(config: ModalCtorCfg);
 }
 
 export interface ModalCtorCfg {
