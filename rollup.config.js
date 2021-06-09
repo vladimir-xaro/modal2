@@ -116,18 +116,18 @@ if (isDev) {  // Dev
         babelHelpers: 'bundled'
       }),
     ]
-  // }, {
-  //   input: 'src/scss/index.core.scss',
-  //   output: {
-  //     file: `dist/${filename}.core.css`,
-  //     format: 'es'
-  //   },
-  //   plugins: [
-  //     postcss({
-  //       extract: true,
-  //       // modules: true,
-  //     })
-  //   ]
+  }, {
+    input: 'src/scss/index.core.scss',
+    output: {
+      file: `dist/${filename}.core.css`,
+      format: 'es'
+    },
+    plugins: [
+      postcss({
+        extract: true,
+        // modules: true,
+      })
+    ]
   // }, {
   //   input: 'src/scss/index.default.scss',
   //   output: {
