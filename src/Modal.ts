@@ -1,14 +1,17 @@
-import CSSClassAnimations, { DOMEventsKeys as CSSAnimationsEventsKey } from "@xaro/css-class-animations";
+import CSSClassAnimations, {
+  DOMEventsKeys as CSSAnimationsEventsKey
+} from "@xaro/css-class-animations";
 import EventEmitter from "@xaro/event-emitter";
 import deepmerge, { isObject } from "@xaro/deepmerge";
-import Helper from "./Helper";
+import HelperCtor from "./Helper";
+import Helper from "./types/Helper";
 import { animate, undefinedBool } from "./helpers";
-import I_Helper from "./types/Helper";
-import {
-  Modal         as I_Modal,
-  ModalCfg      as I_ModalCfg,
-  ModalCtor     as I_ModalCtor,
-  ModalCtorCfg  as I_ModalCtorCfg
+import I_Modal, {
+  ModalCfg,
+  ModalChangeCfg,
+  ModalCtorCfg,
+  ModalHideCfg,
+  ModalShowCfg
 } from "./types/Modal";
 
 const defaultClasses = {
@@ -28,21 +31,16 @@ const defaultClasses = {
     },
   }
 };
+
 const defaultAttrs = {
   modalId:  'data-modal-id',
   close:    'data-modal-close',
-
 };
 
-const Modal: I_ModalCtor = class implements I_Modal {
-  static instances: I_Modal[] = [];
-  static queue:     I_Modal[] = [];
+export default class Modal implements I_Modal {
+  static instances: Modal[] = [];
+  static queue:     Modal[] = [];
   static isFirst:   boolean = true;
-
-  emitter:      EventEmitter;
-  config:       I_ModalCfg;
-  helper:       I_Helper;
-  animContent?: CSSClassAnimations;
 
   static addsEscListener() {
     document.addEventListener('keyup', (event: KeyboardEvent) => {
@@ -65,11 +63,31 @@ const Modal: I_ModalCtor = class implements I_Modal {
     }
   }
 
-  constructor(config: I_ModalCtorCfg) {
+  emitter:      EventEmitter;
+  config:       ModalCfg;
+  helper:       Helper;
+  animContent?: CSSClassAnimations;
+  bluredEl?:    Element;
+
+  constructor(config: ModalCtorCfg) {
+    // First init
     if (Modal.isFirst) {
       Modal.addsEscListener();
 
       Modal.isFirst = false;
+    }
+
+    const el = config.el;
+
+    // Checks if an instance with this element exists
+    if (el.__modalIsInit) {
+      for (const modal of Modal.instances) {
+        if (el === modal.config.el) {
+          return modal;
+        }
+      }
+    } else {
+      el.__modalIsInit = true;
     }
 
     this.emitter = new EventEmitter(config.on);
@@ -81,10 +99,10 @@ const Modal: I_ModalCtor = class implements I_Modal {
       deepmerge(defaultAttrs, config.attrs) :
       defaultAttrs;
     
-      this.config = {
-      el:             config.el,
-      wrapper:        config.el.querySelector(`.${_classes.wrapper}`),
-      content:        config.el.querySelector(`.${_classes.content}`),
+    this.config = {
+      el:             el,
+      wrapper:        el.querySelector(`.${_classes.wrapper}`),
+      content:        el.querySelector(`.${_classes.content}`),
       isVisible:      false,
       pending:        false,
       mutation:       config.mutation || false,
@@ -95,11 +113,11 @@ const Modal: I_ModalCtor = class implements I_Modal {
       attrs:          _attrs
     };
     let _id;
-    this.config.id = (_id = config.el.getAttribute(_attrs.modalId)) ? _id : undefined;
+    this.config.id = (_id = el.getAttribute(_attrs.modalId)) ? _id : undefined;
 
     Modal.instances.push(this);
 
-    this.helper = new Helper;
+    this.helper = new HelperCtor;
     if (this.config.mutation) {
       this.animContent = new CSSClassAnimations({
         el:     this.config.content,
@@ -128,7 +146,7 @@ const Modal: I_ModalCtor = class implements I_Modal {
     }
   }
 
-  changeState(hide: boolean) {
+  changeState(hide: boolean, config?: ModalChangeCfg) {
     if (this.config.pending) {
       this.helper.cb = () => this.changeState(hide);
       return;
@@ -199,19 +217,28 @@ const Modal: I_ModalCtor = class implements I_Modal {
     }
   }
 
-  show(): void {
+  show(config?: ModalShowCfg): void {
     if (this.config.isVisible) {
       return;
     }
 
-    this.changeState(false);
+    this.bluredEl = document.activeElement;
+
+    this.changeState(false, config);
   }
-  hide() {
+  hide(config?: ModalHideCfg) {
     if (! this.config.isVisible) {
       return;
     }
 
-    this.changeState(true);
+    this.changeState(true, config);
+
+    if (config) {
+      if (config.focusBluredEl) {
+        (this.bluredEl as unknown as HTMLOrSVGElement).focus();
+        this.bluredEl = undefined;
+      }
+    }
   }
 
   toggle() {
@@ -222,5 +249,3 @@ const Modal: I_ModalCtor = class implements I_Modal {
     }
   }
 }
-
-export default Modal;

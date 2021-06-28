@@ -33,7 +33,7 @@ if (isDev) {  // Dev
     },
     plugins: [
       typescript({
-        target: 'es3',
+        target: 'esnext',
       }),
       resolve({
         browser: true
@@ -71,7 +71,8 @@ if (isDev) {  // Dev
         format: {
           beautify: true,
           comments: true,
-        }
+        },
+        mangle: false,
       }),
       // scss({
       //   watch: 'src/scss/',
@@ -87,11 +88,6 @@ if (isDev) {  // Dev
         name,
         format: 'iife',
         file: `dist/${filename}.js`,
-      }, {
-        sourcemap: true,
-        name,
-        format: 'umd',
-        file: `dist/${filename}.umd.js`,
       }
     ],
     plugins: [
@@ -102,7 +98,8 @@ if (isDev) {  // Dev
         format: {
           beautify: true,
           comments: true,
-        }
+        },
+        mangle: false,
       }),
       resolve({
         browser: true,

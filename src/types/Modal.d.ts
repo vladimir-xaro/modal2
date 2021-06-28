@@ -1,25 +1,30 @@
+import CSSClassAnimations from "@xaro/css-class-animations";
+import EventEmitter from "@xaro/event-emitter";
+import Helper from "./Helper";
 import { MutationType } from "./types";
 
-export interface ModalCtor {
-  instances:  Modal[];
-  queue:      Modal[];
-  isFirst:    boolean;
+export default class Modal {
+  static instances:  Modal[];
+  static queue:      Modal[];
+  static isFirst:    boolean;
 
-  showById(id: string): void;
-  addsEscListener(): void;
-  new(config: ModalCtorCfg);
-}
+  static showById(id: string): void;
+  static addsEscListener(): void;
 
-export class Modal {
-  config: ModalCfg;
+  emitter:      EventEmitter;
+  config:       ModalCfg;
+  helper:       Helper;
+  animContent?: CSSClassAnimations;
 
   constructor(config: ModalCtorCfg);
 
-  changeState(hide: boolean): void;
-  hide();
-  show();
-  toggle();
+  changeState(hide: boolean, config?: ModalChangeCfg): void;
+  hide(config?: ModalHideCfg): void;
+  show(config?: ModalShowCfg): void;
+  toggle(): void;
 }
+
+export type EventCbType = (modal: Modal) => void | ((modal: Modal) => void)[];
 
 export interface ModalCtorCfg {
   el:             HTMLElement;
@@ -32,11 +37,11 @@ export interface ModalCtorCfg {
   classes?:       any;
   attrs?:         any;
   on?: {
-    init?:        any;
-    beforeHide?:  any;
-    afterHide?:   any;
-    beforeShow?:  any;
-    afterShow?:   any;
+    init?:        EventCbType;
+    beforeHide?:  EventCbType;
+    afterHide?:   EventCbType;
+    beforeShow?:  EventCbType;
+    afterShow?:   EventCbType;
   }
 }
 
@@ -54,3 +59,13 @@ export interface ModalCfg {
   classes:        any;
   attrs:          any;
 }
+
+interface ModalChangeCfgBase {}
+
+export interface ModalShowCfg extends ModalChangeCfgBase {}
+
+export interface ModalHideCfg extends ModalChangeCfgBase {
+  focusBluredEl?: boolean;
+}
+
+export interface ModalChangeCfg extends ModalShowCfg, ModalHideCfg {}

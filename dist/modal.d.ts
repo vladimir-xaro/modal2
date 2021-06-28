@@ -1,6 +1,22 @@
+import CSSClassAnimations from "@xaro/css-class-animations";
+import EventEmitter from "@xaro/event-emitter";
+
+declare global {
+  interface HTMLElement {
+    __modalIsInit?: boolean;
+  }
+}
+
 export type MutationType = 'animation' | 'transition';
 
 export default class Modal {
+  static instances: Modal[];
+  static queue:     Modal[];
+  static isFirst:   boolean;
+
+  static showById(id: string): void;
+  static addsEscListener(): void;
+
   config: ModalCfg;
 
   constructor(config: ModalCtorCfg);
@@ -9,16 +25,6 @@ export default class Modal {
   hide();
   show();
   toggle();
-}
-
-export interface ModalCtor {
-  instances:  Modal[];
-  queue:      Modal[];
-  isFirst:    boolean;
-
-  showById(id: string): void;
-  addsEscListener(): void;
-  new(config: ModalCtorCfg);
 }
 
 export interface ModalCtorCfg {

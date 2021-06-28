@@ -2,11 +2,6 @@ import "./scss/index.dev.scss";
 
 import Modal from "./Modal";
 import _ from "@xaro/micro-dom";
-import { Modal as I_Modal } from "./types/Modal";
-import { MutationType } from "./types/types";
-// import entry from "./entry";
-
-// entry('qwe');
 
 const modal = new Modal({
   el: _<HTMLElement>('.modal-1')[0],
@@ -30,6 +25,10 @@ const modal = new Modal({
   //   }
   // }
 });
+
+const modalDuplicate = new Modal({
+  el: _<HTMLElement>('.modal-1')[0],
+})
 
 const modal2 = new Modal({
   el: _<HTMLElement>('.modal-2')[0],

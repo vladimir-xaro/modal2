@@ -4,5 +4,5 @@
 /dev
 /node_modules
 
-/src/index.dev.ts
-/src/entry.ts
+*.dev.ts
+*.dev.scss

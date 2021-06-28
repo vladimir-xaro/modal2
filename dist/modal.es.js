@@ -1,18 +1,18 @@
-import t from "@xaro/css-class-animations";
+import CSSClassAnimations from "@xaro/css-class-animations";
 
-import i from "@xaro/event-emitter";
+import EventEmitter from "@xaro/event-emitter";
 
-import s, { isObject as e } from "@xaro/deepmerge";
+import deepmerge, { isObject } from "@xaro/deepmerge";
 
-import { nextTick as o } from "@xaro/micro-dom";
+import { nextTick } from "@xaro/micro-dom";
 
-const n = (t, i, s, e, n) => {
-    t.els.addClass(i), o([ () => t.els.addClass(s), 10 ], [ () => t.els.removeClass(i), 10 ], [ () => {
-        t.emitter.once("end", (() => {
-            t.els.removeClass(e, s), n && n();
-        })), t.els.addClass(e);
+const animate = (animInst, from, active, to, afterEnd) => {
+    animInst.els.addClass(from), nextTick([ () => animInst.els.addClass(active), 10 ], [ () => animInst.els.removeClass(from), 10 ], [ () => {
+        animInst.emitter.once("end", (() => {
+            animInst.els.removeClass(to, active), afterEnd && afterEnd();
+        })), animInst.els.addClass(to);
     }, 10 ]);
-}, h = (t, i) => void 0 === t ? i : t, a = {
+}, undefinedBool = (val, def) => void 0 === val ? def : val, defaultClasses = {
     show: "modal--show",
     wrapper: "modal__wrapper",
     content: "modal__content",
@@ -28,98 +28,100 @@ const n = (t, i, s, e, n) => {
             to: "modal-t-show-to"
         }
     }
-}, c = {
+}, defaultAttrs = {
     modalId: "data-modal-id",
     close: "data-modal-close"
-}, r = class {
+};
+
+class Modal {
     static instances=[];
     static queue=[];
     static isFirst=!0;
+    static addsEscListener() {
+        document.addEventListener("keyup", (event => {
+            let length;
+            "Escape" === event.code && (length = Modal.queue.length) && Modal.queue[length - 1].hide();
+        }));
+    }
+    static showById(id) {
+        if (void 0 !== id) for (const modal of Modal.instances) if (id === modal.config.id) return void modal.show();
+    }
     emitter;
     config;
     helper;
     animContent;
-    static addsEscListener() {
-        document.addEventListener("keyup", (t => {
-            let i;
-            "Escape" === t.code && (i = r.queue.length) && r.queue[i - 1].hide();
-        }));
-    }
-    static showById(t) {
-        if (void 0 !== t) for (const i of r.instances) if (t === i.config.id) return void i.show();
-    }
-    constructor(o) {
-        r.isFirst && (r.addsEscListener(), r.isFirst = !1), this.emitter = new i(o.on);
-        const n = e(o.classes) ? s(c, o.classes) : a, l = e(o.attrs) ? s(c, o.attrs) : c;
-        let d;
+    bluredEl;
+    constructor(config) {
+        // First init
+        Modal.isFirst && (Modal.addsEscListener(), Modal.isFirst = !1);
+        const el = config.el;
+        // Checks if an instance with this element exists
+                if (el.__modalIsInit) {
+            for (const modal of Modal.instances) if (el === modal.config.el) return modal;
+        } else el.__modalIsInit = !0;
+        this.emitter = new EventEmitter(config.on);
+        const _classes = isObject(config.classes) ? deepmerge(defaultAttrs, config.classes) : defaultClasses, _attrs = isObject(config.attrs) ? deepmerge(defaultAttrs, config.attrs) : defaultAttrs;
+        let _id;
         this.config = {
-            el: o.el,
-            wrapper: o.el.querySelector(`.${n.wrapper}`),
-            content: o.el.querySelector(`.${n.content}`),
+            el: el,
+            wrapper: el.querySelector(`.${_classes.wrapper}`),
+            content: el.querySelector(`.${_classes.content}`),
             isVisible: !1,
             pending: !1,
-            mutation: o.mutation || !1,
-            attrClose: h(o.attrClose, !0),
-            wrapperClick: h(o.wrapperClick, !0),
-            allowEsc: h(o.allowEsc, !0),
-            classes: n,
-            attrs: l
-        }, this.config.id = (d = o.el.getAttribute(l.modalId)) ? d : void 0, r.instances.push(this), 
+            mutation: config.mutation || !1,
+            attrClose: undefinedBool(config.attrClose, !0),
+            wrapperClick: undefinedBool(config.wrapperClick, !0),
+            allowEsc: undefinedBool(config.allowEsc, !0),
+            classes: _classes,
+            attrs: _attrs
+        }, this.config.id = (_id = el.getAttribute(_attrs.modalId)) ? _id : void 0, Modal.instances.push(this), 
         this.helper = new class {
             cb;
-        }, this.config.mutation && (this.animContent = new t({
+        }, this.config.mutation && (this.animContent = new CSSClassAnimations({
             el: this.config.content,
             allow: this.config.mutation + "end"
-        })), this.config.attrClose && this.config.el.querySelectorAll(`[${this.config.attrs.close}]`).forEach((t => {
-            t.addEventListener("click", (() => this.hide()));
-        })), this.config.wrapperClick && this.config.wrapper.addEventListener("click", (t => {
-            t.target === this.config.wrapper && this.hide();
-        })), this.emitter.emit("init", this, this.config.isVisible), o.showOnInit && this.show();
+        })), this.config.attrClose && this.config.el.querySelectorAll(`[${this.config.attrs.close}]`).forEach((el => {
+            el.addEventListener("click", (() => this.hide()));
+        })), this.config.wrapperClick && this.config.wrapper.addEventListener("click", (event => {
+            event.target === this.config.wrapper && this.hide();
+        })), this.emitter.emit("init", this, this.config.isVisible), config.showOnInit && this.show();
     }
-    changeState(t) {
-        if (this.config.pending) this.helper.cb = () => this.changeState(t); else if (this.config.isVisible = !t, 
-        this.config.mutation) if (this.config.pending = !0, t) {
+    changeState(hide, config) {
+        if (this.config.pending) this.helper.cb = () => this.changeState(hide); else if (this.config.isVisible = !hide, 
+        this.config.mutation) if (this.config.pending = !0, hide) {
             this.emitter.emit("beforeHide", this, this.config.mutation);
-            let t = r.queue.indexOf(this);
-            r.queue.splice(t, 1), n(this.animContent, this.config.classes.transition.hide.from, this.config.classes.transition.hide.active, this.config.classes.transition.hide.to, (() => {
+            let qI = Modal.queue.indexOf(this);
+            Modal.queue.splice(qI, 1), animate(this.animContent, this.config.classes.transition.hide.from, this.config.classes.transition.hide.active, this.config.classes.transition.hide.to, (() => {
                 this.config.el.classList.remove(this.config.classes.show), this.config.pending = !1;
-                const t = this.helper.cb;
+                const cb = this.helper.cb;
                 delete this.helper.cb, this.emitter.emit("afterHide", this, this.config.mutation), 
-                t && t(this);
+                cb && cb(this);
             }));
-        } else this.emitter.emit("beforeShow", this, this.config.mutation), r.queue.push(this), 
-        this.config.el.classList.add(this.config.classes.show), n(this.animContent, this.config.classes.transition.show.from, this.config.classes.transition.show.active, this.config.classes.transition.show.to, (() => {
+        } else this.emitter.emit("beforeShow", this, this.config.mutation), Modal.queue.push(this), 
+        this.config.el.classList.add(this.config.classes.show), animate(this.animContent, this.config.classes.transition.show.from, this.config.classes.transition.show.active, this.config.classes.transition.show.to, (() => {
             this.config.pending = !1;
-            const t = this.helper.cb;
+            const cb = this.helper.cb;
             delete this.helper.cb, this.emitter.emit("afterShow", this, this.config.mutation), 
-            t && t(this);
-        })); else if (t) {
+            cb && cb(this);
+        })); else if (hide) {
             this.emitter.emit("beforeHide", this, this.config.mutation);
-            let t = r.queue.indexOf(this);
-            r.queue.splice(t, 1), this.config.el.classList.remove(this.config.classes.show), 
+            let qI = Modal.queue.indexOf(this);
+            Modal.queue.splice(qI, 1), this.config.el.classList.remove(this.config.classes.show), 
             this.emitter.emit("afterHide", this, this.config.mutation);
-        } else this.emitter.emit("beforeShow", this, this.config.mutation), r.queue.push(this), 
+        } else this.emitter.emit("beforeShow", this, this.config.mutation), Modal.queue.push(this), 
         this.config.el.classList.add(this.config.classes.show), this.emitter.emit("afterShow", this, this.config.mutation);
     }
-    show() {
-        this.config.isVisible || this.changeState(!1);
+    show(config) {
+        this.config.isVisible || (this.bluredEl = document.activeElement, this.changeState(!1, config));
     }
-    hide() {
-        this.config.isVisible && this.changeState(!0);
+    hide(config) {
+        this.config.isVisible && (this.changeState(!0, config), config && config.focusBluredEl && (this.bluredEl.focus(), 
+        this.bluredEl = void 0));
     }
     toggle() {
         this.config.isVisible ? this.hide() : this.show();
     }
-};
+}
 
-// export {
-//   Modal,
-//   ModalCfg,
-//   ModalCtor,
-//   ModalCtorCfg
-// } from "./types/Modal";
-// export {
-//   MutationType
-// } from "./types/types";
-export default r;
+export default Modal;
 //# sourceMappingURL=modal.es.js.map
