@@ -87,29 +87,32 @@ class Modal {
         })), this.emitter.emit("init", this, this.config.isVisible), config.showOnInit && this.show();
     }
     changeState(hide, config) {
-        if (this.config.pending) this.helper.cb = () => this.changeState(hide); else if (this.config.isVisible = !hide, 
-        this.config.mutation) if (this.config.pending = !0, hide) {
-            this.emitter.emit("beforeHide", this, this.config.mutation);
-            let qI = Modal.queue.indexOf(this);
-            Modal.queue.splice(qI, 1), animate(this.animContent, this.config.classes.transition.hide.from, this.config.classes.transition.hide.active, this.config.classes.transition.hide.to, (() => {
-                this.config.el.classList.remove(this.config.classes.show), this.config.pending = !1;
+        if (this.config.pending) this.helper.cb = () => this.changeState(hide); else {
+            if (this.config.isVisible = !hide, this.config.mutation) if (this.config.pending = !0, 
+            hide) {
+                this.emitter.emit("beforeHide", this, this.config.mutation);
+                let qI = Modal.queue.indexOf(this);
+                Modal.queue.splice(qI, 1), animate(this.animContent, this.config.classes.transition.hide.from, this.config.classes.transition.hide.active, this.config.classes.transition.hide.to, (() => {
+                    this.config.el.classList.remove(this.config.classes.show), this.config.pending = !1;
+                    const cb = this.helper.cb;
+                    delete this.helper.cb, this.emitter.emit("afterHide", this, this.config.mutation), 
+                    cb && cb(this);
+                }));
+            } else this.emitter.emit("beforeShow", this, this.config.mutation), Modal.queue.push(this), 
+            this.config.el.classList.add(this.config.classes.show), animate(this.animContent, this.config.classes.transition.show.from, this.config.classes.transition.show.active, this.config.classes.transition.show.to, (() => {
+                this.config.pending = !1;
                 const cb = this.helper.cb;
-                delete this.helper.cb, this.emitter.emit("afterHide", this, this.config.mutation), 
+                delete this.helper.cb, this.emitter.emit("afterShow", this, this.config.mutation), 
                 cb && cb(this);
-            }));
-        } else this.emitter.emit("beforeShow", this, this.config.mutation), Modal.queue.push(this), 
-        this.config.el.classList.add(this.config.classes.show), animate(this.animContent, this.config.classes.transition.show.from, this.config.classes.transition.show.active, this.config.classes.transition.show.to, (() => {
-            this.config.pending = !1;
-            const cb = this.helper.cb;
-            delete this.helper.cb, this.emitter.emit("afterShow", this, this.config.mutation), 
-            cb && cb(this);
-        })); else if (hide) {
-            this.emitter.emit("beforeHide", this, this.config.mutation);
-            let qI = Modal.queue.indexOf(this);
-            Modal.queue.splice(qI, 1), this.config.el.classList.remove(this.config.classes.show), 
-            this.emitter.emit("afterHide", this, this.config.mutation);
-        } else this.emitter.emit("beforeShow", this, this.config.mutation), Modal.queue.push(this), 
-        this.config.el.classList.add(this.config.classes.show), this.emitter.emit("afterShow", this, this.config.mutation);
+            })); else if (hide) {
+                this.emitter.emit("beforeHide", this, this.config.mutation);
+                let qI = Modal.queue.indexOf(this);
+                Modal.queue.splice(qI, 1), this.config.el.classList.remove(this.config.classes.show), 
+                this.emitter.emit("afterHide", this, this.config.mutation);
+            } else this.emitter.emit("beforeShow", this, this.config.mutation), Modal.queue.push(this), 
+            this.config.el.classList.add(this.config.classes.show), this.emitter.emit("afterShow", this, this.config.mutation);
+            hide ? Modal.queue.length || document.body.classList.remove("modal-shown") : document.body.classList.add("modal-shown");
+        }
     }
     show(config) {
         this.config.isVisible || (this.bluredEl = document.activeElement, this.changeState(!1, config));

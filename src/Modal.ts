@@ -215,6 +215,14 @@ export default class Modal implements I_Modal {
         this.emitter.emit('afterShow', this, this.config.mutation);
       }
     }
+
+    if (hide) {
+      if (! Modal.queue.length) {
+        document.body.classList.remove('modal-shown');
+      }
+    } else {
+      document.body.classList.add('modal-shown');
+    }
   }
 
   show(config?: ModalShowCfg): void {

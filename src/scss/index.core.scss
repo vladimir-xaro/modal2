@@ -1,5 +1,12 @@
 $v-margin: 20px;
 
+body {
+  &.modal-shown {
+    overflow: hidden !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 .modal {
   display: none;
   position: fixed;
